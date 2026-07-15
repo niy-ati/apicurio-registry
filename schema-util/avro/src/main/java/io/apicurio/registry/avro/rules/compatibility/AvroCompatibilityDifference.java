@@ -120,7 +120,7 @@ public class AvroCompatibilityDifference implements CompatibilityDifference {
                     "\"type\": \"" + writerType + "\""));
             suggestions.add(CompatibilityFixSuggestion.of(CompatibilityFixSuggestion.Tier.ACCEPTABLE,
                     "Use a union that includes both types",
-                    "\"type\": [\"null\", \"" + writerType + "\", \"" + readerType + "\"]"));
+                    "\"type\": [\"" + writerType + "\", \"" + readerType + "\"]"));
             return suggestions;
         }
 

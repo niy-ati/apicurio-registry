@@ -86,8 +86,7 @@ public class RuleViolation {
     }
 
     public void setSuggestions(List<CompatibilityFixSuggestion> suggestions) {
-        this.suggestions = suggestions == null ? Collections.emptyList()
-                : Collections.unmodifiableList(suggestions);
+        this.suggestions = suggestions == null ? Collections.emptyList() : List.copyOf(suggestions);
     }
 
     public boolean hasSuggestions() {

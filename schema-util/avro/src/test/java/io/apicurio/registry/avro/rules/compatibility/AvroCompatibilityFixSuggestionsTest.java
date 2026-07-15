@@ -74,6 +74,8 @@ public class AvroCompatibilityFixSuggestionsTest {
                 .anyMatch(s -> s.getTier() == CompatibilityFixSuggestion.Tier.RECOMMENDED));
         assertTrue(violation.getSuggestions().stream()
                 .anyMatch(s -> s.getExample() != null && s.getExample().contains("long")));
+        assertTrue(violation.getSuggestions().stream()
+                .anyMatch(s -> s.getExample() != null && s.getExample().contains("[\"long\", \"int\"]")));
     }
 
     @Test

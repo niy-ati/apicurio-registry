@@ -5,7 +5,7 @@ import io.apicurio.registry.storage.impl.sql.SqlStatements;
 import io.apicurio.registry.storage.impl.sql.jdb.Handle;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,7 +25,7 @@ public class SqlSequenceRepository {
     public static final String COMMENT_ID_SEQUENCE = "commentId";
 
     // Sequence counters - only used for H2 in-memory (and as a result KafkaSQL)
-    private final Map<String, AtomicLong> sequenceCounters = new HashMap<>();
+    private final Map<String, AtomicLong> sequenceCounters = new ConcurrentHashMap<>();
 
     private final Logger log;
 

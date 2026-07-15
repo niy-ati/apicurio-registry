@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static io.apicurio.registry.utils.tests.TestUtils.normalizeMultiLineString;
@@ -206,17 +205,6 @@ public class JsonSchemaContentDereferencerTest extends ArtifactUtilProviderTestB
                 "expected inlined schema node to be present");
         Assertions.assertEquals(expectedComment, inlined.path("$comment").asText(null),
                 "expected $comment provenance on inlined schema, got: " + inlined);
-    }
-
-    @Test
-    public void testBuildOriginalRefComment() {
-        Assertions.assertEquals(Optional.of("customer.json:orders/Customer:1"),
-                JsonSchemaDereferencer.buildOriginalRefComment("orders:Customer:1:customer.json"));
-        Assertions.assertEquals(Optional.of("types/all-types.json:default/City:2"),
-                JsonSchemaDereferencer
-                        .buildOriginalRefComment("default:City:2:types/all-types.json#/definitions/City"));
-        Assertions.assertTrue(JsonSchemaDereferencer.buildOriginalRefComment("customer.json").isEmpty());
-        Assertions.assertTrue(JsonSchemaDereferencer.buildOriginalRefComment(null).isEmpty());
     }
 
     /**

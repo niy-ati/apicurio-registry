@@ -1,0 +1,11 @@
+{
+  "name": "output_schema_no_type_tool",
+  "inputSchema": {
+    "type": "object"
+  },
+  "outputSchema": {
+    "properties": {
+      "result": { "type": "string" }
+    }
+  }
+}

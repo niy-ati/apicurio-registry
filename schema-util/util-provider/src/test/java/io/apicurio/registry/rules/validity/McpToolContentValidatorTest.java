@@ -75,6 +75,29 @@ public class McpToolContentValidatorTest extends ArtifactUtilProviderTestBase {
     }
 
     @Test
+    public void testMcpToolInvalidOutputSchema() throws Exception {
+        TypedContent content = resourceToTypedContentHandle("mcptool-invalid-outputschema.json");
+        McpToolContentValidator validator = new McpToolContentValidator();
+        RuleViolationException error = Assertions.assertThrows(RuleViolationException.class, () -> {
+            validator.validate(ValidityLevel.FULL, content, Collections.emptyMap());
+        });
+        Assertions.assertFalse(error.getCauses().isEmpty());
+        // type not "object", properties not an object, required not an array -- 3 violations
+        Assertions.assertTrue(error.getCauses().size() >= 3);
+        Assertions.assertTrue(
+                error.getCauses().stream().anyMatch(v -> v.getDescription().contains("outputSchema")));
+    }
+
+    @Test
+    public void testMcpToolOutputSchemaWithoutTypeIsValid() throws Exception {
+        // Unlike inputSchema, outputSchema is not required to declare a "type" -- only its shape
+        // is validated when present.
+        TypedContent content = resourceToTypedContentHandle("mcptool-outputschema-no-type.json");
+        McpToolContentValidator validator = new McpToolContentValidator();
+        validator.validate(ValidityLevel.FULL, content, Collections.emptyMap());
+    }
+
+    @Test
     public void testMcpToolInvalidAnnotations() throws Exception {
         TypedContent content = resourceToTypedContentHandle("mcptool-invalid-annotations.json");
         McpToolContentValidator validator = new McpToolContentValidator();

@@ -97,49 +97,82 @@ public class McpToolContentValidator implements ContentValidator {
             return;
         }
 
-        JsonNode inputSchema = tree.get("inputSchema");
-        if (!inputSchema.isObject()) {
-            violations.add(
-                    new RuleViolation("'inputSchema' field must be an object", "/inputSchema"));
+        validateToolSchemaStructure(tree.get("inputSchema"), "/inputSchema", true, violations);
+    }
+
+    private void validateOutputSchemaField(JsonNode tree, Set<RuleViolation> violations) {
+        if (!tree.has("outputSchema")) {
             return;
         }
 
-        // inputSchema must have a "type" field with value "object"
-        if (!inputSchema.has("type")) {
-            violations.add(new RuleViolation("'inputSchema' must have a 'type' field",
-                    "/inputSchema/type"));
-        } else if (!inputSchema.get("type").isTextual()) {
-            violations.add(new RuleViolation("'inputSchema.type' must be a string",
-                    "/inputSchema/type"));
-        } else if (!"object".equals(inputSchema.get("type").asText())) {
+        validateToolSchemaStructure(tree.get("outputSchema"), "/outputSchema", false, violations);
+    }
+
+    /**
+     * Structural validation shared by {@code inputSchema} and {@code outputSchema}: both are
+     * JSON Schema objects describing structured tool content per the MCP specification, both must
+     * have an object {@code properties} and a string-array {@code required} when those keys are
+     * present, and both must have {@code type == "object"} when a type is present.
+     * <p>
+     * {@code inputSchema} additionally requires {@code type} to be present at all -- tool call
+     * arguments are always a JSON object per the spec, so that field isn't optional the way it is
+     * for {@code outputSchema} (unspecified there rather than assumed absent). {@code typeRequired}
+     * preserves that distinction; the rest of the structural shape is identical.
+     * <p>
+     * Previously only {@code inputSchema} received these checks; {@code outputSchema} was only
+     * confirmed to be a JSON object, with no validation of its {@code type}, {@code properties},
+     * or {@code required} shape. Since {@code outputSchema} is exactly what tool-to-tool
+     * compatibility checking (matching a producer's output against a consumer's input) will need
+     * to reason about, a malformed {@code outputSchema} silently passing validation here would
+     * corrupt whatever compatibility checking is built on top of it.
+     */
+    private void validateToolSchemaStructure(JsonNode schema, String pointerPrefix,
+            boolean typeRequired, Set<RuleViolation> violations) {
+        if (!schema.isObject()) {
+            violations.add(new RuleViolation("'" + fieldName(pointerPrefix) + "' field must be an object",
+                    pointerPrefix));
+            return;
+        }
+
+        if (!schema.has("type")) {
+            if (typeRequired) {
+                violations.add(new RuleViolation(
+                        "'" + fieldName(pointerPrefix) + "' must have a 'type' field",
+                        pointerPrefix + "/type"));
+            }
+        } else {
+            JsonNode type = schema.get("type");
+            if (!type.isTextual()) {
+                violations.add(new RuleViolation(
+                        "'" + fieldName(pointerPrefix) + ".type' must be a string",
+                        pointerPrefix + "/type"));
+            } else if (!"object".equals(type.asText())) {
+                violations.add(new RuleViolation(
+                        "'" + fieldName(pointerPrefix) + ".type' must be 'object' per the MCP specification",
+                        pointerPrefix + "/type"));
+            }
+        }
+
+        if (schema.has("properties") && !schema.get("properties").isObject()) {
             violations.add(new RuleViolation(
-                    "'inputSchema.type' must be 'object' per the MCP specification",
-                    "/inputSchema/type"));
+                    "'" + fieldName(pointerPrefix) + ".properties' must be an object",
+                    pointerPrefix + "/properties"));
         }
 
-        // If "properties" is present, it must be an object
-        if (inputSchema.has("properties") && !inputSchema.get("properties").isObject()) {
-            violations.add(new RuleViolation("'inputSchema.properties' must be an object",
-                    "/inputSchema/properties"));
-        }
-
-        // If "required" is present, it must be an array of strings
-        if (inputSchema.has("required")) {
-            if (!inputSchema.get("required").isArray()) {
-                violations.add(new RuleViolation("'inputSchema.required' must be an array",
-                        "/inputSchema/required"));
+        if (schema.has("required")) {
+            if (!schema.get("required").isArray()) {
+                violations.add(new RuleViolation(
+                        "'" + fieldName(pointerPrefix) + ".required' must be an array",
+                        pointerPrefix + "/required"));
             } else {
-                JsonValidationUtils.validateStringArray(inputSchema.get("required"),
-                        "/inputSchema/required", "required parameter name", violations);
+                JsonValidationUtils.validateStringArray(schema.get("required"),
+                        pointerPrefix + "/required", "required parameter name", violations);
             }
         }
     }
 
-    private void validateOutputSchemaField(JsonNode tree, Set<RuleViolation> violations) {
-        if (tree.has("outputSchema") && !tree.get("outputSchema").isObject()) {
-            violations.add(new RuleViolation("'outputSchema' field must be an object",
-                    "/outputSchema"));
-        }
+    private static String fieldName(String jsonPointer) {
+        return jsonPointer.substring(jsonPointer.lastIndexOf('/') + 1);
     }
 
     private void validateAnnotationsField(JsonNode tree, Set<RuleViolation> violations) {

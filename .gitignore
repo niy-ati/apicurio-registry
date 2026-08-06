@@ -66,3 +66,5 @@ claudedocs
 .vale/
 
 .claude/scheduled_tasks.lock
+.m2-cache/
+build.log

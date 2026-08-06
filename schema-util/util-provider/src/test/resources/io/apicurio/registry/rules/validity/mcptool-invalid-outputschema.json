@@ -1,0 +1,11 @@
+{
+  "name": "bad_output_schema_tool",
+  "inputSchema": {
+    "type": "object"
+  },
+  "outputSchema": {
+    "type": "string",
+    "properties": "not-an-object",
+    "required": "not-an-array"
+  }
+}
